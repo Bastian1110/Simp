@@ -2,6 +2,7 @@ import numpy as np
 import random 
 
 np.set_printoptions(precision=2, suppress=True)
+np.random.seed(42)
 
 def relu(x):
     return np.maximum(0, x)
@@ -29,8 +30,8 @@ bias_hidden_two = np.random.random((1, 3))
 weights_hidden_two_to_output = np.random.random((3, 1))
 bias_output = np.random.random((1, 1))
 
-datasetX = np.array([[1, 2], [4, 1], [0, 0], [2, 3]])
-datasetY = np.array([[3], [5], [0], [5]])
+datasetX = np.array([[1, 2]])
+datasetY = np.array([[3]])
 
 def generate_batch(dataset_x, dataset_y, batch_size):
     numbers = list(range(len(dataset_x)))
@@ -42,8 +43,8 @@ def generate_batch(dataset_x, dataset_y, batch_size):
         batches.append((batch_x, batch_y))
     return batches
 
-batch_size = 2
-iterations = 10000
+batch_size = 1
+iterations = 1
 for i in range(iterations):
     batches = generate_batch(datasetX, datasetY, batch_size)
     for batch in batches:
@@ -52,11 +53,11 @@ for i in range(iterations):
 
         # Forward pass
         result_hidden_one = forward_layer(test_input, weights_input_to_hidden_one, bias_hidden_one, relu)
+        print(f"First Layer Input : {test_input} Outout : {result_hidden_one}")
         result_hidden_two = forward_layer(result_hidden_one, weights_hidden_one_to_hidden_two, bias_hidden_two, relu)
+        print(f"Second Layer Input : {result_hidden_one} Outout : {result_hidden_two}")
         result_output = forward_layer(result_hidden_two, weights_hidden_two_to_output, bias_output)
-
-        print(f"Inout : {test_input}")
-        print(f"Output : {test_output}")
+        print(f"Output Layer Input : {result_hidden_two} Outout : {result_output}")
 
         # Calculate loss
         loss = mean_squared_error(test_output, result_output)
@@ -73,6 +74,8 @@ for i in range(iterations):
         gradient_sum_hidden_one = np.dot(gradient_sum_hidden_two, weights_hidden_one_to_hidden_two.T) * relu_derivative(result_hidden_one)
         gradient_input_to_hidden_one = np.dot(test_input.T, gradient_sum_hidden_one) / batch_size
         gradient_bias_hidden_one = np.sum(gradient_sum_hidden_one, axis=0, keepdims=True) / batch_size
+
+        print(f"Gradients Weights : {gradient_input_to_hidden_one}")
 
         # Update weights and biases
         weights_input_to_hidden_one -= learning_rate * gradient_input_to_hidden_one

@@ -1,4 +1,5 @@
 from SimpNeuralNetwork import SimpNeuralNetwork
+import numpy as np
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -84,12 +85,16 @@ def plot_neural_network(layers):
 
 nn = SimpNeuralNetwork("XOR")
 nn.add_layer(2, layer_type="input")
-nn.summary()
-nn.add_layer(3)
-nn.summary()
-nn.add_layer(3)
-nn.summary()
+nn.add_layer(3, activation_function="relu")
+nn.add_layer(3, activation_function="relu")
 nn.add_layer(1, activation_function="none", layer_type="output")
 nn.summary()
-plot_neural_network(nn.layers)
 
+
+test_x = np.array([[1, 2]])
+test_y = np.array([[3]])
+
+layers_output = nn.feed_forward(test_x)
+print(f"Layers Output : {layers_output}")
+
+nn.calculate_gradients(test_x, layers_output, test_y)
