@@ -1,14 +1,12 @@
 import numpy as np 
 
 np.set_printoptions(precision=2, suppress=True)
-np.random.seed(42)
 
 def relu(x):
     return np.maximum(0, x)
 
 def relu_derivative(x):
     return np.where(x > 0, 1, 0)
-
 
 ACTIVATION_FUNCTIONS = {
     "relu" : relu
@@ -68,7 +66,11 @@ class SimpNeuralNetwork:
             })
             self.idx += 1
 
-    def remove_layer():
+    def add_multiple_hidden_layers(self, layers):
+        for layer in layers:
+            self.add_layer(n_neurons=layer[0], activation_function=layer[1])
+
+    def remove_layer(self):
         pass 
 
     def _forward_layer(self, x, layer_id):
@@ -90,30 +92,36 @@ class SimpNeuralNetwork:
         for layer_id in range(self.idx - 1, 0, -1):
             if layer_id == self.idx - 1:
                 gradient_sum = layers_output[-1] - expected_y
-                gradient_weights = np.dot(layers_output[layer_id - 2].T, gradient_sum)
-                gradient_bias = np.sum(gradient_sum, axis=0, keepdims=True) 
-                weights_gradients.insert(0, gradient_weights)
-                biases_gradients.insert(0, gradient_bias)
-                continue
+            else:
+                gradient_sum = np.dot(gradient_sum, self.layers[layer_id + 1]["weights"].T) * ACTIVATION_FUNCTIONS_DERIVATIVES[self.layers[layer_id]["activation_function"]](layers_output[layer_id - 1])
             if layer_id == 1:
-                gradient_sum = np.dot(gradient_sum, self.layers[layer_id + 1]["weights"].T) * relu_derivative(layers_output[layer_id - 2])
                 gradient_weights = np.dot(x.T, gradient_sum) 
-                gradient_bias = np.sum(gradient_sum, axis=0, keepdims=True) 
-                weights_gradients.insert(0, gradient_weights)
-                biases_gradients.insert(0, gradient_bias)
-                print(weights_gradients)
-                continue
-            gradient_sum = np.dot(gradient_sum, self.layers[layer_id + 1]["weights"].T) * relu_derivative(layers_output[layer_id - 2])
-            gradient_weights = np.dot(layers_output[layer_id - 2].T, gradient_sum) 
-            gradient_bias = np.sum(gradient_sum, axis=0, keepdims=True) 
+                gradient_bias = np.sum(gradient_sum, axis=0, keepdims=True)
+            else:
+                gradient_weights = np.dot(layers_output[layer_id - 2].T, gradient_sum)
+                gradient_bias = np.sum(gradient_sum, axis=0, keepdims=True)
+            
             weights_gradients.insert(0, gradient_weights)
             biases_gradients.insert(0, gradient_bias)
-
-
-
+        return weights_gradients, biases_gradients
     
+
+    def update_weights_and_bias(self, weights_gradients, biases_gradients, learning_rate):
+        for layer_id in range(1, self.idx):
+            self.layers[layer_id]["weights"] -= learning_rate * weights_gradients[layer_id - 1]
+            self.layers[layer_id]["bias"] -= learning_rate * biases_gradients[layer_id -1]
+
     def summary(self):
         print(f"Name : {self.name}")
         print(f"Layer   Type    Neurons    Activation")
         for l in self.layers:
             print(f"  {l['id']}    {l['layer_type']}       {l['size']}      {l['activation_function']}")
+
+    def train(self, epochs, datasetX, datasetY, learning_rate):
+        for epoch in range(epochs):
+            for i in range(len(datasetX)):
+                x =  np.array([datasetX[i]])
+                y =  np.array([datasetY[i]])
+                layers_output = self.feed_forward(x)
+                weights_gradients, bias_gradients= self.calculate_gradients(x, layers_output, y)
+                self.update_weights_and_bias(weights_gradients, bias_gradients, learning_rate)

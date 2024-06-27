@@ -3,7 +3,6 @@ import random
 
 np.set_printoptions(precision=2, suppress=True)
 np.random.seed(42)
-
 def relu(x):
     return np.maximum(0, x)
 
@@ -86,7 +85,15 @@ for i in range(iterations):
         bias_hidden_two -= learning_rate * gradient_bias_hidden_two
         bias_output -= learning_rate * gradient_bias_output
 
+
+        print("Aqui Weights : ")
+        print(weights_hidden_one_to_hidden_two)
+        print("Aqui Bias : ")
+        print(bias_hidden_two)
+
     if i % 1000 == 0:
         print(f"Iteration {i}, Loss: {loss}")
+
+
 
 
